@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f9;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .test-container {
+                max-width: 600px;
+                background-color: #fff;
+                padding: 50px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: fadeIn 0.8s ease-in-out;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                margin-left: 30%;
+                margin-top: 10%;
+            }
+            .test-container:hover {
+                transform: scale(1.03);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+            .question {
+                margin-bottom: 20px;
+                font-size: 18px;
+                font-weight: bold;
+                color: #333;
+                animation: fadeInUp 0.6s ease-in-out;
+            }
+            .options {
+                margin-bottom: 20px;
+                animation: fadeInUp 0.8s ease-in-out;
+            }
+            .navigation-buttons {
+                display: flex;
+                justify-content: space-between;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+                border: none;
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 4px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            }
+            button:hover {
+                background-color: #45a049;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            }
+            button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+                box-shadow: none;
+            }
+            .Finish-button {
+                margin-left: 86%;
+                background-color: #ff5733;
+            }
+            .Finish-button:hover {
+                background-color: #e04e2e;
+            }
+        
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.95);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+        
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+        
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>Test Page</h2>
+        <form id="test-form" method="POST">
+            <button id="finish" type="button" onclick="location.href='/completion/'" class="Finish-button">Finish</button>
+            {% csrf_token %}
+            <div id="question-container">
+                <div class="question" id="question">Question 1: What is the capital of France?</div>
+                <div class="options" id="options">
+                    <!-- Options will be dynamically generated -->
+                </div>
+            </div>
+            <div class="navigation-buttons">
+                <button id="prev" type="button" onclick="prevQuestion()" disabled>Previous</button>
+                <button id="next" type="button" onclick="nextQuestion()">Next</button>
+                
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                options: ["Paris", "London", "Berlin", "Madrid"]
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                options: ["Mars", "Venus", "Earth", "Jupiter"]
+            },
+            {
+                question: "Who wrote 'Hamlet'?",
+                options: ["William Shakespeare", "Charles Dickens", "J.K. Rowling", "Mark Twain"]
+            },
+            {
+                question: "What is the square root of 64?",
+                options: ["6", "7", "8", "9"]
+            },
+            {
+                question: "Which is the largest ocean on Earth?",
+                options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"]
+            }
+        ];
+
+        let currentQuestion = 0;
+        const answers = {};
+
+        const questionElement = document.getElementById("question");
+        const optionsElement = document.getElementById("options");
+        const prevButton = document.getElementById("prev");
+        const nextButton = document.getElementById("next");
+        const finishButton = document.getElementById("finish");
+
+        function loadQuestion(index) {
+            const question = questions[index];
+            questionElement.innerText = `Question ${index + 1}: ${question.question}`;
+            optionsElement.innerHTML = question.options
+                .map((option, i) => {
+                    const safeValue = encodeURIComponent(option); // Safely encode option value
+                    return `
+                        <label style="display: block; margin-bottom: 10px;">
+                            <input type="radio" name="q${index}" value="${safeValue}" ${answers[index] === option ? "checked" : ""}>
+                            ${option}
+                        </label>`;
+                })
+                .join("");
+        }
+
+        function saveAnswer() {
+            const selectedOption = document.querySelector(`input[name="q${currentQuestion}"]:checked`);
+            if (selectedOption) {
+                answers[currentQuestion] = decodeURIComponent(selectedOption.value); // Decode value when saving
+            }
+        }
+
+        function updateButtons() {
+            prevButton.disabled = currentQuestion === 0;
+            nextButton.style.display = currentQuestion === questions.length - 1 ? "none" : "inline-block";
+            finishButton.style.display = "inline-block"; // Ensure finish button is always visible
+        }
+
+        function nextQuestion() {
+            saveAnswer();
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion(currentQuestion);
+            }
+            updateButtons();
+        }
+
+        function prevQuestion() {
+            saveAnswer();
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion(currentQuestion);
+            }
+            updateButtons();
+        }
+
+        function finishTest() {
+            if (confirm("Are you sure you want to finish the test?")) {
+                saveAnswer();
+                const results = Object.keys(answers)
+                    .map(index => `Question ${+index + 1}: ${answers[index] || "No Answer"}`)
+                    .join("\n");
+                alert("Your Answers:\n" + results);
+                submitAnswers();
+            }
+        }
+
+        function submitAnswers() {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch('/submit-test/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(answers)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Test submitted successfully!");
+                } else {
+                    alert("Failed to submit the test.");
+                }
+            });
+        }
+
+        function initializeTest() {
+            loadQuestion(currentQuestion);
+            updateButtons();
+        }
+
+        window.onload = initializeTest;
+    </script>
+</body>
+</html>
