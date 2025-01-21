@@ -25,17 +25,6 @@ Take assessments assigned by instructors.
 
 View results and feedback.
 
-# File Structure
-
-sns-assessment-platform-main/
-├── app/                   # Core application logic
-├── static/                # Static assets (CSS, JS, images)
-├── templates/             # HTML templates
-├── tests/                 # Test cases for the platform
-├── requirements.txt       # List of Python dependencies
-├── README.md              # Project documentation
-└── LICENSE                # License for the project
-
 # Installation and Setup
 
 # Prerequisites
